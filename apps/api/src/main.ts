@@ -11,8 +11,9 @@ app.get('/', (req, res) => {
 });
 
 app.get('/auth', AuthController.getUserSession);
-app.put('/auth', AuthController.createPassword);
-app.post('auth/otp', AuthController.validateOTP);
+app.post('/auth/otp', AuthController.validateOTP);
+app.post('/login', AuthController.login);
+app.put('/login/create', AuthController.createPassword);
 
 app.listen(port, host, () => {
   console.log(`[ ready ] http://${host}:${port}`);

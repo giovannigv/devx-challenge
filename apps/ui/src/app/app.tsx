@@ -19,10 +19,9 @@ export function App() {
   const [createPasswordRequired, setCreatePasswordRequired] = useState(false)
   const [message, setMessage] = useState('');
 
-  const handleLogin = async () => {
+  const handleEmailValidate = async () => {
     try {
       const response = await axios.get<IApiResponse>(`${API_BASE_URL}/auth?email=${email}`);
-      console.log(response.data);
 
       const { challenge, session } = response.data;
 
@@ -40,33 +39,15 @@ export function App() {
           break;
 
         default:
+          throw new Error('Response not expected.');
           break;
       }
       if (challenge === 'new-password') {
         setPasswordRequired(true);
       }
-
-      // localStorage.setItem('JWT', token);
-
-      // if (token) {
-      //   // Store the token in local storage or cookies for further usage
-      //   console.log('JWT token:', token);
-      //   setMessage('Login successful.');
-      // }
     } catch (error) {
       console.error(error);
       setMessage('Error during login.');
-    }
-  };
-
-  const handleSetPassword = async () => {
-    try {
-      await axios.post(`${API_BASE_URL}/set-password`, { email, password });
-      setPasswordRequired(false);
-      setMessage('Password set successfully.');
-    } catch (error) {
-      console.error(error);
-      setMessage('Error while setting password.');
     }
   };
 
@@ -90,13 +71,26 @@ export function App() {
     }
   };
 
-  const handleLoginWithPassword = async () => {
+  const handleCreatePassword = async () => {
     try {
-      const response = await axios.post<IApiResponse>(`${API_BASE_URL}/login-password`, { email, password });
+      const response = await axios.put(`${API_BASE_URL}/login/create`, { email, password });
       const { token } = response.data;
 
-      // Store the token in local storage or cookies for further usage
-      console.log('JWT token:', token);
+      localStorage.setItem("jwt", token || '');
+
+      setMessage('Password set successfully.');
+    } catch (error) {
+      console.error(error);
+      setMessage('Error while setting password.');
+    }
+  };
+
+  const handleLogin = async () => {
+    try {
+      const response = await axios.post<IApiResponse>(`${API_BASE_URL}/login`, { email, password });
+      const { token } = response.data;
+
+      localStorage.setItem("jwt", token || '');
       setMessage('Login successful.');
     } catch (error) {
       console.error(error);
@@ -141,7 +135,12 @@ export function App() {
                       onChange={(e) => setPassword(e.target.value)}
                     />
                   }
-                  <button onClick={handleLogin}>Login</button>
+                  {passwordRequired ?
+                   <button onClick={handleLogin}>Login</button>
+                  : createPasswordRequired ?
+                    <button onClick={handleCreatePassword}>Create Password</button>
+                  : <button onClick={handleEmailValidate}>Validate Email</button>
+                  }
                 </div>
                 {otpRequired && <div>
                   <h2>One-Time Password (OTP) required.</h2>
